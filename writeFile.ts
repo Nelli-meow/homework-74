@@ -1,11 +1,15 @@
-import fs from  'fs';
+import {promises as fs} from  'fs';
 
 const fileName = './messages.txt';
 
-fs.writeFile(fileName, 'Hello World', (err) => {
-    if (err) {
-        console.error(err);
-    }
+const run  = async () => {
+    try {
 
-    console.log('файл создался')
-});
+        await fs.writeFile(fileName, JSON.stringify('hello world!'));
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+run().catch(e => console.error(e));
