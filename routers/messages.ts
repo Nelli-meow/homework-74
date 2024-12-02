@@ -1,29 +1,55 @@
 import express from "express";
 import {promises as fs} from  'fs';
+import {IMessage} from "../types";
 
 const messagesRouter = express.Router();
 
-
 const messagesDir = "./messages";
 
-fs.mkdir(messagesDir).catch(console.error);
+fs.mkdir(messagesDir, { recursive: true }).catch(console.error);
 
-messagesRouter.get("/", async  (req , res) => {
-    const { message } = req.body;
+messagesRouter.get("/", async (req, res) => {
+    try {
+        const files = await fs.readdir(messagesDir);
+        const lastFiles = files.slice(-5);
 
-    const datetime = new Date().toISOString();
-    const fileName = `./${datetime}.txt`;
+        const messages: (IMessage)[] = [];
 
-    await fs.writeFile(fileName, JSON.stringify('hello world!'));
+        await lastFiles.forEach(async (file) => {
+            const filePath = `${messagesDir}/${file}`;
+            try {
+                const content = await fs.readFile(filePath, "utf-8");
+                const message: IMessage = JSON.parse(content);
 
-    const messageData = { message, datetime };
+                messages.push(message);
+            } catch (err) {
+                console.error(err);
+            }
+        });
 
-    res.send(messageData);
+        res.json(messages);
+
+    } catch (err) {
+        console.error(err);
+    }
 });
 
-messagesRouter.post("/", (req , res) => {
-    console.log(req.body);
-    res.send("создание и возвр");
+messagesRouter.post("/", async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        const datetime = new Date().toISOString();
+        const fileName = `${messagesDir}/${datetime}.txt`;
+
+        const messageData = { message, datetime };
+
+        await fs.writeFile(fileName, JSON.stringify(messageData));
+
+        res.json(messageData);
+    } catch (err) {
+        console.error(err);
+    }
 });
+
 
 export default messagesRouter;
