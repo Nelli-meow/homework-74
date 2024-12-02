@@ -20,7 +20,6 @@ messagesRouter.get("/", async (req, res) => {
             try {
                 const content = await fs.readFile(filePath, "utf-8");
                 const message: IMessage = JSON.parse(content);
-
                 messages.push(message);
             } catch (err) {
                 console.error(err);
